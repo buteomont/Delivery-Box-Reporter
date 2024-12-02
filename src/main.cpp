@@ -759,9 +759,9 @@ void reconnect()
       
       // Wait a second before retrying
       // In the meantime check for input in case something needs to be changed to make it work
-      checkForCommand(); 
+    //  checkForCommand(); 
       
-      delay(1000);
+      myDelay(1000);
       }
     }
   mqttClient.loop(); //This has to happen every so often or we get disconnected for some reason
