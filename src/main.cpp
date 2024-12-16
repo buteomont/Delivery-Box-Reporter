@@ -129,6 +129,19 @@ void show(String msg)
     {
     display.clearDisplay(); // clear the screen
     display.setCursor(0, 0);  // Top-left corner
+
+    if (msg.length()>20)
+      {
+      display.setTextSize(1);      // tiny text
+      }
+    else if (msg.length()>7)
+      {
+      display.setTextSize(2);      // small text
+      }
+    else
+      {
+      display.setTextSize(3);      // Normal 1:1 pixel scale
+      }
     display.println(msg);
     display.display(); // move the buffer contents to the OLED
     }
@@ -161,7 +174,7 @@ void initSensor()
       if (settings.debug)
         {
         Serial.println("VL53L0X init OK!");
-        show("Sens OK");
+        show("Sensor\nOK");
         }
       break;
       } 
@@ -170,7 +183,7 @@ void initSensor()
       if (retry==1)
         {
         Serial.println("Error initializing VL53L0X sensor!");
-        show("Error 1");
+        show("Sensor\nFailure");
         retry=1;
         }
       Serial.print(MAX_HARDWARE_FAILURES-retry);
@@ -283,6 +296,14 @@ void setup()
   initWiFi(); 
   initDisplay();
   initSensor(); //sensor should be initialized after display because display sets up i2c
+
+  // show("12345678901234567890"); //test 2
+  // myDelay(5000);
+  // show("1234567890123456789012345678901234567890"); //test 1
+  // myDelay(5000);
+  // show("1234567"); //test 3
+  // myDelay(5000);
+ 
 
   if (settingsAreValid)
     {      

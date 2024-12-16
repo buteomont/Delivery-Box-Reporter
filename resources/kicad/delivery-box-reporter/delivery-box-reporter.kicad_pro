@@ -469,7 +469,7 @@
       "plot": "Gerbers/",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "delivery-box-reporter.step",
       "svg": "./",
       "vrml": ""
     },
