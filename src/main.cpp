@@ -289,24 +289,17 @@ void initDisplay()
 void setup() 
   {
   delay(1000); //let it stabilize after a deep sleep
-
-  //initialize everything
   initSerial();
-  initSettings();
-  initWiFi(); 
-  initDisplay();
-  initSensor(); //sensor should be initialized after display because display sets up i2c
 
-  // show("12345678901234567890"); //test 2
-  // myDelay(5000);
-  // show("1234567890123456789012345678901234567890"); //test 1
-  // myDelay(5000);
-  // show("1234567"); //test 3
-  // myDelay(5000);
- 
+  initSettings();
 
   if (settingsAreValid)
     {      
+    //initialize everything
+    initWiFi(); 
+    initDisplay();
+    initSensor(); //sensor should be initialized after display because display sets up i2c
+
     if (settings.debug)
       {
       if (!ip.fromString(settings.address))
@@ -988,7 +981,7 @@ int readBattery()
 
 float convertToVoltage(int raw)
   {
-  int vcc=map(raw,0,FULL_BATTERY,0,340);
+  int vcc=map(raw,0,FULL_BATTERY_COUNT,0,FULL_BATTERY_VOLTS);
   float f=((float)vcc)/100.0;
   return f;
   }

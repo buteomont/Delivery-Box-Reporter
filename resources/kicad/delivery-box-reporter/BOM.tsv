@@ -1,0 +1,11 @@
+Reference	Value	Datasheet	Footprint	Qty	DNP
+D1	1N914	~	Resistor_SMD:R_0805_2012Metric	1	
+DISP1	128x32_OLED_Display		Display:OLED_0.91_128x32	1	
+J1	Solar Panel	~	Davids_Footprints:KF350 2 Pin Terminal Block	1	
+Q2	2N3904	https://www.onsemi.com/pub/Collateral/2N3903-D.PDF	Package_TO_SOT_SMD:SOT-23	1	
+R1,R3	10K	~	Resistor_SMD:R_0805_2012Metric	2	
+R2	100K	~	Resistor_SMD:R_0805_2012Metric	1	
+U1	ESP8266 D1 Mini	https://wiki.wemos.cc/products:d1:d1_mini#documentation	Module:WEMOS_D1_mini_light	1	
+U3	~		Sensor_Distance:GY-VL53LOX-V2	1	
+U4	TLV803EB33VDBZR	https://www.ti.com/lit/ds/symlink/tlv803e.pdf	Package_TO_SOT_SMD:SOT-23	1	
+U5	MCP1702-3302E	http://ww1.microchip.com/downloads/en/DeviceDoc/20001826D.pdf	Package_TO_SOT_THT:TO-92_Inline	1	
