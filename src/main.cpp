@@ -61,6 +61,7 @@ typedef struct
   char address[ADDRESS_SIZE]=""; //static address for this device
   char netmask[ADDRESS_SIZE]=""; //size of network
   bool displayenabled=true;    //enable the display
+  bool invertdisplay=false;   //rotate display 180 degrees
   } conf;
 
 conf settings; //all settings in one struct makes it easier to store in EEPROM
@@ -110,6 +111,30 @@ void myDelay(ulong ms)
     delay(10);
     }
   }
+
+void showWifiStrength(int32_t rssi)
+  {
+  //int32_t rssi = WiFi.RSSI();
+  int strength = map(rssi, -100, -50, 0, 4);
+  
+  // Draw the dot
+  display.fillCircle(64, 40, 3, SSD1306_WHITE);
+  
+  // Draw the arcs
+  for (int i = 0; i < 4; i++) 
+    {
+    if (i < strength) 
+      {
+      display.drawCircle(64, 40, 10 + (i * 7), SSD1306_WHITE);
+      }
+    else 
+      {
+      display.drawCircle(64, 40, 10 + (i * 7), SSD1306_WHITE);
+      display.drawCircle(64, 40, 11 + (i * 7), SSD1306_BLACK);
+      } 
+    }
+  }
+
 
 void show(String msg)
   {
@@ -277,6 +302,7 @@ void initDisplay()
       myDelay(5000);
       ESP.reset();  //try again
       }
+    display.setRotation(settings.invertdisplay?2:0); //make it look right
     display.clearDisplay();       //no initial logo
     display.setTextSize(3);      // Normal 1:1 pixel scale
     display.setTextColor(SSD1306_WHITE); // Draw white text
@@ -583,6 +609,8 @@ void incomingMqttHandler(char* reqTopic, byte* payload, unsigned int length)
     strcat(jsonStatus,settings.debug?"true":"false");
     strcat(jsonStatus,"\", \"displayenabled\":\"");
     strcat(jsonStatus,settings.displayenabled?"true":"false");
+    strcat(jsonStatus,"\", \"invertdisplay\":\"");
+    strcat(jsonStatus,settings.invertdisplay?"true":"false");
     
     strcat(jsonStatus,"\"}");
     response=jsonStatus;
@@ -736,6 +764,9 @@ void showSettings()
   Serial.println(")");
   Serial.print("displayenabled=1|0 (");
   Serial.print(settings.displayenabled);
+  Serial.println(")");
+  Serial.print("invertdisplay=1|0 (");
+  Serial.print(settings.invertdisplay);
   Serial.println(")");
   Serial.print("MQTT Client ID is ");
   Serial.println(settings.mqttClientId);
@@ -935,6 +966,14 @@ bool processCommand(String cmd)
     if (!val)
       strcpy(val,"0");
     settings.displayenabled=atoi(val)==1?true:false;
+    saveSettings();
+    }
+  else if (strcmp(nme,"invertdisplay")==0)
+    {
+    if (!val)
+      strcpy(val,"0");
+    settings.invertdisplay=atoi(val)==1?true:false;
+    display.setRotation(settings.invertdisplay?2:0); //go ahead and do it
     saveSettings();
     }
   else
