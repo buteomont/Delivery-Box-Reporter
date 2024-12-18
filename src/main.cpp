@@ -111,22 +111,15 @@ void myDelay(ulong ms)
     }
   }
 
-void show(uint16_t val, String suffix)
-  {
-  if (settings.displayenabled)
-    {
-    display.clearDisplay(); // clear the screen
-    display.setCursor(0, 0);  // Top-left corner
-    display.print(val); // print the distance on OLED
-    display.println(suffix);
-    display.display(); // move the buffer contents to the OLED
-    }
-  }
-
 void show(String msg)
   {
   if (settings.displayenabled)
     {
+    if (settings.debug)
+      {
+      Serial.print("Length of display message:");
+      Serial.println(msg.length());
+      }
     display.clearDisplay(); // clear the screen
     display.setCursor(0, 0);  // Top-left corner
 
@@ -146,6 +139,22 @@ void show(String msg)
     display.display(); // move the buffer contents to the OLED
     }
   }
+
+void show(uint16_t val, String suffix)
+  {
+  if (settings.displayenabled)
+    {
+    String msg=String(val)+suffix;
+    show(msg);
+    
+    // display.clearDisplay(); // clear the screen
+    // display.setCursor(0, 0);  // Top-left corner
+    // display.print(val); // print the distance on OLED
+    // display.println(suffix);
+    // display.display(); // move the buffer contents to the OLED
+    }
+  }
+
 void initWiFi()
   {
   //Immediately turn off the WiFi radio (it comes on when we wake up)
@@ -725,7 +734,7 @@ void showSettings()
   Serial.print("debug=1|0 (");
   Serial.print(settings.debug);
   Serial.println(")");
-  Serial.print("displayEnabled=1|0 (");
+  Serial.print("displayenabled=1|0 (");
   Serial.print(settings.displayenabled);
   Serial.println(")");
   Serial.print("MQTT Client ID is ");
