@@ -140,6 +140,7 @@ void showWifiStrength(int32_t rssi)
       } 
     }
   rssiShowing=true; //keep it up
+  display.display();
   }
 
 
@@ -435,13 +436,17 @@ void loop()
   if (settingsAreValid && settings.sleeptime==0) //if sleepTime is zero then don't sleep
     {
     connectToWiFi(); //may need to connect to the wifi
-    reconnect();  // may need to reconnect to the MQTT broker
-    distance=measure();
-    isPresent=distance>settings.mindistance 
-              && distance<settings.maxdistance;
-    show(distance," mm");
-    report();
-    myDelay(9000); 
+
+    if (WiFi.status() != WL_CONNECTED)
+      {    
+      reconnect();  // may need to reconnect to the MQTT broker
+      distance=measure();
+      isPresent=distance>settings.mindistance 
+                && distance<settings.maxdistance;
+      show(distance," mm");
+      report();
+      myDelay(9000);
+      }
     } 
   else if (settingsAreValid                        //setup has been done and
           && millis()-doneTimestamp>PUBLISH_DELAY) //waited long enough for report to finish
@@ -510,26 +515,29 @@ void sendOrNot()
     {      
     // ********************* attempt to connect to Wifi network
     connectToWiFi();
-      
-    // ********************* Initialize the MQTT connection
-    reconnect();  // connect to the MQTT broker
-     
-    report();
 
-    if (isPresent)
-      {
-      myRtc.presentReported=true;
-      myRtc.absentReported=false;
+    if (WiFi.status() == WL_CONNECTED)
+      {  
+      // ********************* Initialize the MQTT connection
+      reconnect();  // connect to the MQTT broker
+      
+      report();
+
+      if (isPresent)
+        {
+        myRtc.presentReported=true;
+        myRtc.absentReported=false;
+        }
+      else
+        {
+        myRtc.absentReported=true;
+        myRtc.presentReported=false;
+        }
+      
+      doneTimestamp=millis(); //this is to allow the publish to complete before sleeping
+      myRtc.nextHealthReportTime=myMillis()+ONE_HOUR;
+      myDelay(5000); //wait for any incoming messages
       }
-    else
-      {
-      myRtc.absentReported=true;
-      myRtc.presentReported=false;
-      }
-    
-    doneTimestamp=millis(); //this is to allow the publish to complete before sleeping
-    myRtc.nextHealthReportTime=myMillis()+ONE_HOUR;
-    myDelay(5000); //wait for any incoming messages
     }
   
   }
@@ -558,18 +566,30 @@ void connectToWiFi()
         Serial.println("STA Failed to configure");
         }
       }
+
+    unsigned long connectTimeout = millis() + WIFI_TIMEOUT_SECONDS*1000; // 10 second timeout
     WiFi.begin(settings.ssid, settings.wifiPassword);
-    while (WiFi.status() != WL_CONNECTED) 
+    while (WiFi.status() != WL_CONNECTED && millis() < connectTimeout) 
       {
       // not yet connected
       Serial.print(".");
       checkForCommand(); // Check for input in case something needs to be changed to work
-      delay(500);
+      delay(100);
       }
-  
-    Serial.print("Connected to network with address ");
-    Serial.println(WiFi.localIP());
-    Serial.println();
+
+    if (WiFi.status() != WL_CONNECTED)
+      {
+      Serial.println("Connection to network failed. ");
+      Serial.println();
+      show("Wifi failed \nto connect");
+      delay(3000);
+      }
+    else 
+      {
+      Serial.print("Connected to network with address ");
+      Serial.println(WiFi.localIP());
+      Serial.println();
+      }
     }
   else if (settings.debug)
     {

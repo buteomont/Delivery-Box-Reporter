@@ -28,8 +28,9 @@
 #define MQTT_PAYLOAD_REBOOT_COMMAND "reboot" //reboot the controller
 #define MQTT_PAYLOAD_VERSION_COMMAND "version" //show the version number
 #define MQTT_PAYLOAD_STATUS_COMMAND "status" //show the most recent flow values
-#define JSON_STATUS_SIZE SSID_SIZE+PASSWORD_SIZE+USERNAME_SIZE+MQTT_TOPIC_SIZE+50 //+50 for associated field names, etc
+#define JSON_STATUS_SIZE SSID_SIZE+PASSWORD_SIZE+USERNAME_SIZE+MQTT_TOPIC_SIZE+150 //+150 for associated field names, etc
 #define PUBLISH_DELAY 400 //milliseconds to wait after publishing to MQTT to allow transaction to finish
+#define WIFI_TIMEOUT_SECONDS 20 // give up on wifi after this long
 //#define MAX_CHANGE_PCT 2 //percent distance change must be greater than this before reporting
 #define FULL_BATTERY_COUNT 3686 //raw A0 count with a freshly charged 18650 lithium battery 
 #define FULL_BATTERY_VOLTS 412 //4.12 volts for a fully charged 18650 lithium battery 
