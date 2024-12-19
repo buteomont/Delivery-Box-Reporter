@@ -43,6 +43,8 @@
 #define DOT_RADIUS    2       // radius of activity dot
 #define DOT_SPACING   4       // spacing between dots
 
+#define RSSI_DOT_RADIUS 2       // Radius of the little dot at the bottom of the wifi indicator
+
 // Error codes copied from the MQTT library
 // #define MQTT_CONNECTION_REFUSED            -2
 // #define MQTT_CONNECTION_TIMEOUT            -1

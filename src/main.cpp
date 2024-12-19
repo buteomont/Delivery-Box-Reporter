@@ -79,6 +79,8 @@ bool isPresent=false;
 //This is the distance measured on this pass. It will be written to RTC memory just before sleeping
 int distance=0;
 
+boolean rssiShowing=false; //used to redraw the RSSI indicator after clearing display
+
 //We should report at least once per hour, whether we have a package or not.  This
 //will also let us retrieve any outstanding MQTT messages.  Since the internal millis()
 //counter is reset every time it wakes up, we need to save it before sleeping and restore
@@ -114,25 +116,30 @@ void myDelay(ulong ms)
 
 void showWifiStrength(int32_t rssi)
   {
-  //int32_t rssi = WiFi.RSSI();
   int strength = map(rssi, -100, -50, 0, 4);
+  static int xLoc=SCREEN_WIDTH-RSSI_DOT_RADIUS;
+  static int yLoc=SCREEN_HEIGHT-RSSI_DOT_RADIUS;
   
   // Draw the dot
-  display.fillCircle(64, 40, 3, SSD1306_WHITE);
+  display.fillCircle(xLoc, yLoc, RSSI_DOT_RADIUS, SSD1306_WHITE);
   
   // Draw the arcs
   for (int i = 0; i < 4; i++) 
     {
     if (i < strength) 
       {
-      display.drawCircle(64, 40, 10 + (i * 7), SSD1306_WHITE);
-      }
+      display.drawCircle(xLoc, yLoc, RSSI_DOT_RADIUS + (i * 5), SSD1306_WHITE);
+      display.drawCircle(xLoc, yLoc, RSSI_DOT_RADIUS+1 + (i * 5), SSD1306_WHITE);
+      display.drawCircle(xLoc, yLoc, RSSI_DOT_RADIUS+2 + (i * 5), SSD1306_WHITE);
+     }
     else 
       {
-      display.drawCircle(64, 40, 10 + (i * 7), SSD1306_WHITE);
-      display.drawCircle(64, 40, 11 + (i * 7), SSD1306_BLACK);
+      display.drawCircle(xLoc, yLoc, RSSI_DOT_RADIUS + (i * 5), SSD1306_WHITE);
+      display.drawCircle(xLoc, yLoc, RSSI_DOT_RADIUS+1 + (i * 5), SSD1306_BLACK);
+      display.drawCircle(xLoc, yLoc, RSSI_DOT_RADIUS+2 + (i * 5), SSD1306_BLACK);
       } 
     }
+  rssiShowing=true; //keep it up
   }
 
 
@@ -152,7 +159,7 @@ void show(String msg)
       {
       display.setTextSize(1);      // tiny text
       }
-    else if (msg.length()>7)
+    else if (msg.length()>7 || rssiShowing) //make room for rssi indicator
       {
       display.setTextSize(2);      // small text
       }
@@ -161,6 +168,10 @@ void show(String msg)
       display.setTextSize(3);      // Normal 1:1 pixel scale
       }
     display.println(msg);
+    if (rssiShowing)
+      {
+      showWifiStrength(myRtc.rssi);
+      }
     display.display(); // move the buffer contents to the OLED
     }
   }
@@ -171,12 +182,6 @@ void show(uint16_t val, String suffix)
     {
     String msg=String(val)+suffix;
     show(msg);
-    
-    // display.clearDisplay(); // clear the screen
-    // display.setCursor(0, 0);  // Top-left corner
-    // display.print(val); // print the distance on OLED
-    // display.println(suffix);
-    // display.display(); // move the buffer contents to the OLED
     }
   }
 
@@ -184,6 +189,7 @@ void initWiFi()
   {
   //Immediately turn off the WiFi radio (it comes on when we wake up)
   WiFi.mode( WIFI_OFF );
+  rssiShowing=false;
 //  WiFi.forceSleepBegin();  
   }
 
@@ -393,9 +399,37 @@ void setup()
     showSettings();
     }
   }
- 
+
+
+// void loop()
+//   {
+//   static int32_t i=-100;
+//   static bool dirUp=true;
+//   rssiShowing=true;
+
+//   Serial.print("-");
+//   showWifiStrength(i);
+//   display.display();
+//   if (i > -50 || i < -100)
+//     {
+//     dirUp=!dirUp;
+//     Serial.print(i);
+//     Serial.print("Changing direction"); 
+//     }
+//   if (dirUp)
+//     i++;
+//   else
+//     i--;
+//   delay(100);
+//   }
+  
+
 void loop()
   {
+  if (WiFi.status() != WL_CONNECTED)
+    {
+    rssiShowing=false; //don't give the wrong impression
+    }
   mqttClient.loop(); //This has to happen every so often or we get disconnected for some reason
   checkForCommand(); // Check for input in case something needs to be changed to work
   if (settingsAreValid && settings.sleeptime==0) //if sleepTime is zero then don't sleep
@@ -536,13 +570,16 @@ void connectToWiFi()
     Serial.print("Connected to network with address ");
     Serial.println(WiFi.localIP());
     Serial.println();
-
-    myRtc.rssi=WiFi.RSSI(); //save the RSSI for later report
     }
   else if (settings.debug)
     {
     Serial.print("Actual network address is ");
     Serial.println(WiFi.localIP());
+    }
+  if (WiFi.status() == WL_CONNECTED)
+    {
+    myRtc.rssi=WiFi.RSSI(); //save the RSSI for later report
+    showWifiStrength(myRtc.rssi);
     }
   }
 
@@ -611,6 +648,8 @@ void incomingMqttHandler(char* reqTopic, byte* payload, unsigned int length)
     strcat(jsonStatus,settings.displayenabled?"true":"false");
     strcat(jsonStatus,"\", \"invertdisplay\":\"");
     strcat(jsonStatus,settings.invertdisplay?"true":"false");
+    strcat(jsonStatus,"\", \"IPAddress\":\"");
+    strcat(jsonStatus,wifiClient.localIP().toString().c_str());
     
     strcat(jsonStatus,"\"}");
     response=jsonStatus;
