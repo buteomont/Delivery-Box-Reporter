@@ -150,7 +150,7 @@ void show(String msg)
   if (settings.displayenabled)
     {
     lastMessage=msg; //in case we need to redraw it
-    
+
     if (settings.debug)
       {
       Serial.print("Length of display message:");
@@ -434,13 +434,16 @@ void loop()
     {
     rssiShowing=false; //don't give the wrong impression
     }
-  mqttClient.loop(); //This has to happen every so often or we get disconnected for some reason
+  else
+    {
+    mqttClient.loop(); //This has to happen every so often or we get disconnected for some reason
+    }
   checkForCommand(); // Check for input in case something needs to be changed to work
   if (settingsAreValid && settings.sleeptime==0) //if sleepTime is zero then don't sleep
     {
     connectToWiFi(); //may need to connect to the wifi
 
-    if (WiFi.status() != WL_CONNECTED)
+    if (WiFi.status() == WL_CONNECTED)
       {    
       reconnect();  // may need to reconnect to the MQTT broker
       distance=measure();
