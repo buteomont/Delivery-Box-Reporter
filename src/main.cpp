@@ -80,6 +80,7 @@ bool isPresent=false;
 int distance=0;
 
 boolean rssiShowing=false; //used to redraw the RSSI indicator after clearing display
+String lastMessage=""; //contains the last message sent to display. Sometimes need to reshow it
 
 //We should report at least once per hour, whether we have a package or not.  This
 //will also let us retrieve any outstanding MQTT messages.  Since the internal millis()
@@ -535,6 +536,10 @@ void sendOrNot()
         }
       
       doneTimestamp=millis(); //this is to allow the publish to complete before sleeping
+      if (myMillis()>myRtc.nextHealthReportTime)
+        {
+        myRtc.rtc=millis(); //122024dep reset this to keep it from overflowing in 49 days
+        }
       myRtc.nextHealthReportTime=myMillis()+ONE_HOUR;
       myDelay(5000); //wait for any incoming messages
       }
@@ -572,16 +577,18 @@ void connectToWiFi()
     while (WiFi.status() != WL_CONNECTED && millis() < connectTimeout) 
       {
       // not yet connected
-      Serial.print(".");
-      checkForCommand(); // Check for input in case something needs to be changed to work
+      // Serial.print(".");
+      // checkForCommand(); // Check for input in case something needs to be changed to work
       delay(100);
       }
+    
+    checkForCommand(); // Check for input in case something needs to be changed to work
 
     if (WiFi.status() != WL_CONNECTED)
       {
       Serial.println("Connection to network failed. ");
       Serial.println();
-      show("Wifi failed \nto connect");
+      show("Wifi failed to \nconnect");
       delay(3000);
       }
     else 
