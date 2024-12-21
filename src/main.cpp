@@ -115,7 +115,7 @@ void myDelay(ulong ms)
     }
   }
 
-void showWifiStrength(int32_t rssi)
+void drawWifiStrength(int32_t rssi)
   {
   int strength = map(rssi, -100, -50, 0, 4);
   static int xLoc=SCREEN_WIDTH-RSSI_DOT_RADIUS;
@@ -141,7 +141,7 @@ void showWifiStrength(int32_t rssi)
       } 
     }
   rssiShowing=true; //keep it up
-  display.display();
+//  display.display();
   }
 
 
@@ -149,6 +149,8 @@ void show(String msg)
   {
   if (settings.displayenabled)
     {
+    lastMessage=msg; //in case we need to redraw it
+    
     if (settings.debug)
       {
       Serial.print("Length of display message:");
@@ -172,7 +174,7 @@ void show(String msg)
     display.println(msg);
     if (rssiShowing)
       {
-      showWifiStrength(myRtc.rssi);
+      drawWifiStrength(myRtc.rssi);
       }
     display.display(); // move the buffer contents to the OLED
     }
@@ -410,7 +412,7 @@ void setup()
 //   rssiShowing=true;
 
 //   Serial.print("-");
-//   showWifiStrength(i);
+//   drawWifiStrength(i);
 //   display.display();
 //   if (i > -50 || i < -100)
 //     {
@@ -606,7 +608,14 @@ void connectToWiFi()
   if (WiFi.status() == WL_CONNECTED)
     {
     myRtc.rssi=WiFi.RSSI(); //save the RSSI for later report
-    showWifiStrength(myRtc.rssi);
+  //  drawWifiStrength(myRtc.rssi);
+
+    // if this is just turning on, reshow the last message except smaller
+    if (!rssiShowing)
+      {
+      rssiShowing=true;
+      show(lastMessage);
+      }
     }
   }
 
